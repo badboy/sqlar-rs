@@ -1,10 +1,12 @@
 use std::path::{Path, PathBuf};
+use std::io::{self, Write};
 
 use argh::FromArgs;
 use chrono::NaiveDateTime;
 use log::LevelFilter;
-use sqlar::{with_each_file, Connection};
+use sqlar::{with_each_file, Connection, FileType};
 use anyhow::Result;
+use tabwriter::TabWriter;
 
 #[derive(FromArgs, PartialEq, Debug)]
 /// sqlar utility
@@ -47,7 +49,11 @@ struct Create {
     #[argh(positional)]
     archive: PathBuf,
 
-    /// files to include
+    /// file or directory to include
+    #[argh(positional)]
+    path: PathBuf,
+
+    /// additional files to include
     #[argh(positional)]
     paths: Vec<PathBuf>,
 }
@@ -59,13 +65,6 @@ struct List {
     /// archive file
     #[argh(positional)]
     archive: PathBuf,
-}
-
-#[derive(Debug)]
-struct Entry {
-    name: String,
-    size: usize,
-    data: Option<Vec<u8>>,
 }
 
 fn main() {
@@ -100,7 +99,12 @@ fn real_main() -> Result<()> {
             log::info!("Extracting {} to {}/", archive.display(), destination.display());
             sqlar::extract(&archive, &destination)?
         }
-        Subcommand::Create(_c) => {}
+        Subcommand::Create(c) => {
+            let mut paths = vec![c.path];
+            paths.extend_from_slice(&c.paths);
+            log::info!("Creating new archive {} with files: {:?}", c.archive.display(), paths);
+            sqlar::create(&c.archive, &paths)?
+        }
         Subcommand::List(l) => list(&*l.archive)?,
     }
 
@@ -111,20 +115,28 @@ fn real_main() -> Result<()> {
 pub fn list(path: &Path) -> Result<()> {
     let db = Connection::open(path)?;
 
-    println!("Name | Type | Mode | Modified | Size (Compressed)");
+    let stdout = io::stdout();
+    let handle = stdout.lock();
+    let mut tw = TabWriter::new(handle);
+    writeln!(&mut tw, "Name\tType\tMode\tModified\tSize (Compressed)").unwrap();
+    writeln!(&mut tw, "====\t====\t====\t========\t=================").unwrap();
+
     with_each_file(&db, false, |entry| {
         let ts = NaiveDateTime::from_timestamp(entry.mtime, 0);
-        println!(
-            "{} | {:?} | {:o} | {} UTC | {} ({:.1}%)",
+        writeln!(
+            &mut tw,
+            "{}\t{:?}\t{:o}\t{} UTC\t{} ({:.1}%)",
             entry.name,
             entry.filetype,
             entry.mode,
             ts,
             entry.size,
-            (entry.compressed_size as f64 / entry.size as f64) * 100.0,
-        );
+            if entry.filetype == FileType::File { (entry.compressed_size as f64 / entry.size as f64) * 100.0} else { 0.0 },
+        ).unwrap();
         Ok(())
     })?;
+
+    tw.flush().unwrap();
 
     Ok(())
 }
