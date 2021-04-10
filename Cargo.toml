@@ -1,6 +1,6 @@
 [package]
 name = "sqlar"
-version = "0.0.1"
+version = "0.1.0"
 authors = ["Jan-Erik Rediger <janerik@fnordig.de>"]
 edition = "2018"
 description = "Port of the SQLite Archive Files utility"
