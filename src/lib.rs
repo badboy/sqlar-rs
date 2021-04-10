@@ -1,31 +1,44 @@
 use std::fs;
+use std::path::Path;
 
-pub use rusqlite::{Connection, Result};
+use rusqlite::Connection;
+pub use rusqlite::Result;
 
 mod compress;
 mod create;
 mod extract;
 mod list;
 
-pub use extract::extract;
-pub use list::with_each_file;
 pub use create::create;
+pub use extract::extract;
 
+/// A file entry in the archive
 #[derive(Debug)]
 pub struct Entry {
+    /// Name of the file
     pub name: String,
+    /// Access permissions
     pub mode: u32,
+    /// Either a file or directory.
+    /// Other file types are unsupported and will not be created or extracted.
     pub filetype: FileType,
+    /// Last modification time
     pub mtime: i64,
+    /// Original file size
     pub size: usize,
+    /// Compressed file size
     pub compressed_size: usize,
+    /// Uncompressed content
     pub data: Option<Vec<u8>>,
 }
 
 #[derive(Debug, PartialEq)]
 pub enum FileType {
+    /// Regular file
     File,
+    /// Directory
     Dir,
+    /// Other file types are not supported
     Unsupported,
 }
 
@@ -61,4 +74,13 @@ impl From<fs::FileType> for FileType {
         }
         FileType::Unsupported
     }
+}
+
+pub fn with_each_file(
+    path: impl AsRef<Path>,
+    decompress: bool,
+    f: impl FnMut(&Entry) -> Result<()>,
+) -> Result<()> {
+    let db = Connection::open(path)?;
+    list::with_each_file(&db, decompress, f)
 }

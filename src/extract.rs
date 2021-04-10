@@ -3,7 +3,7 @@ use std::io::Write;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 
-use crate::{with_each_file, FileType};
+use crate::{list, FileType};
 
 use filetime::FileTime;
 use rusqlite::{Connection, Result};
@@ -15,7 +15,7 @@ pub fn extract(path: &Path, dest: &Path) -> Result<()> {
     let db = Connection::open(path)?;
     crate::compress::init(&db)?;
 
-    with_each_file(&db, true, |entry| {
+    list::with_each_file(&db, true, |entry| {
         if Path::new(&entry.name).is_absolute() {
             log::warn!("absolute file path found: {}, skipping.", entry.name);
             return Ok(());

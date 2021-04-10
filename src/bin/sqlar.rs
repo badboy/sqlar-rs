@@ -4,7 +4,7 @@ use std::io::{self, Write};
 use argh::FromArgs;
 use chrono::NaiveDateTime;
 use log::LevelFilter;
-use sqlar::{with_each_file, Connection, FileType};
+use sqlar::{with_each_file, FileType};
 use anyhow::Result;
 use tabwriter::TabWriter;
 
@@ -113,15 +113,13 @@ fn real_main() -> Result<()> {
 
 /// List all files in the SQL archive
 pub fn list(path: &Path) -> Result<()> {
-    let db = Connection::open(path)?;
-
     let stdout = io::stdout();
     let handle = stdout.lock();
     let mut tw = TabWriter::new(handle);
     writeln!(&mut tw, "Name\tType\tMode\tModified\tSize (Compressed)").unwrap();
     writeln!(&mut tw, "====\t====\t====\t========\t=================").unwrap();
 
-    with_each_file(&db, false, |entry| {
+    with_each_file(path, false, |entry| {
         let ts = NaiveDateTime::from_timestamp(entry.mtime, 0);
         writeln!(
             &mut tw,

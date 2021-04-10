@@ -6,8 +6,8 @@ use std::time;
 
 use crate::FileType;
 
-use walkdir::WalkDir;
 use rusqlite::{params, Connection, Result};
+use walkdir::WalkDir;
 
 const SCHEMA: &str = r#"
 CREATE TABLE sqlar(
@@ -19,7 +19,7 @@ CREATE TABLE sqlar(
 );
 "#;
 
-/// Extract all files from the SQLar at `path` into `dest`
+/// Create a new archive and add all regular files and directories.
 pub fn create(archive: &Path, paths: &[PathBuf]) -> Result<()> {
     if archive.exists() {
         eprintln!(
