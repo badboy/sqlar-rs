@@ -6,7 +6,7 @@
 //!
 //! This library allows to list archive contents, extract files from archives or create a new
 //! archive.
-//! It's main usage is throug the command line utility `sqlar`
+//! It's main usage is throug the command line utility `sqlar`.
 //!
 //! # Installation
 //!
