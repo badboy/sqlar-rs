@@ -1,7 +1,5 @@
 use std::fs;
-use std::path::Path;
 
-use rusqlite::Connection;
 pub use rusqlite::Result;
 
 mod compress;
@@ -11,9 +9,10 @@ mod list;
 
 pub use create::create;
 pub use extract::extract;
+pub use list::with_each_entry;
 
 /// A file entry in the archive
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Entry {
     /// Name of the file
     pub name: String,
@@ -32,7 +31,8 @@ pub struct Entry {
     pub data: Option<Vec<u8>>,
 }
 
-#[derive(Debug, PartialEq)]
+/// A file's type
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum FileType {
     /// Regular file
     File,
@@ -74,13 +74,4 @@ impl From<fs::FileType> for FileType {
         }
         FileType::Unsupported
     }
-}
-
-pub fn with_each_file(
-    path: impl AsRef<Path>,
-    decompress: bool,
-    f: impl FnMut(&Entry) -> Result<()>,
-) -> Result<()> {
-    let db = Connection::open(path)?;
-    list::with_each_file(&db, decompress, f)
 }

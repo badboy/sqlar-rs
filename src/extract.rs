@@ -8,14 +8,14 @@ use crate::{list, FileType};
 use filetime::FileTime;
 use rusqlite::{Connection, Result};
 
-/// Extract all files from the SQLar at `path` into `dest`
+/// Extract all files from the SQLar at `path` into `dest`.
 pub fn extract(path: &Path, dest: &Path) -> Result<()> {
     fs::create_dir_all(&dest).expect("can't create target directory");
 
     let db = Connection::open(path)?;
     crate::compress::init(&db)?;
 
-    list::with_each_file(&db, true, |entry| {
+    list::iterate(&db, true, |entry| {
         if Path::new(&entry.name).is_absolute() {
             log::warn!("absolute file path found: {}, skipping.", entry.name);
             return Ok(());

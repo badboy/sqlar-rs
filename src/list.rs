@@ -1,8 +1,47 @@
+use std::path::Path;
+
 use rusqlite::{Connection, Result};
 
 use crate::{Entry, FileType};
 
-pub fn with_each_file(
+/// Iterate over each entry in the archive.
+///
+/// # Arguments
+///
+/// * `path` - path to the archive.
+/// * `decompress` - wether to get and decompress the file data.
+///                  If `false` no data is included.
+/// * `f` - the function to run on each entry.
+///
+/// # Returns
+///
+/// `Ok(())` if iteration over all entries succeeds.
+/// `Err(e)` if fetching entries fails, parsing entries fails
+///  or the user-supplied callback fails.
+pub fn with_each_entry(
+    path: impl AsRef<Path>,
+    decompress: bool,
+    f: impl FnMut(&Entry) -> Result<()>,
+) -> Result<()> {
+    let db = Connection::open(path)?;
+    iterate(&db, decompress, f)
+}
+
+/// Iterate over each entry in the archive.
+///
+/// # Arguments
+///
+/// * `conn` - the database to use
+/// * `decompress` - wether to get and decompress the file data.
+///                  If `false` no data is included.
+/// * `f` - the function to run on each entry.
+///
+/// # Returns
+///
+/// `Ok(())` if iteration over all entries succeeds.
+/// `Err(e)` if fetching entries fails, parsing entries fails
+///  or the user-supplied callback fails.
+pub(crate) fn iterate(
     conn: &Connection,
     decompress: bool,
     mut f: impl FnMut(&Entry) -> Result<()>,

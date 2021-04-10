@@ -5,7 +5,7 @@ use anyhow::Result;
 use argh::FromArgs;
 use chrono::NaiveDateTime;
 use log::LevelFilter;
-use sqlar::{with_each_file, FileType};
+use sqlar::{with_each_entry, FileType};
 use tabwriter::TabWriter;
 
 #[derive(FromArgs, PartialEq, Debug)]
@@ -129,7 +129,7 @@ pub fn list(path: &Path) -> Result<()> {
     writeln!(&mut tw, "Name\tType\tMode\tModified\tSize (Compressed)").unwrap();
     writeln!(&mut tw, "====\t====\t====\t========\t=================").unwrap();
 
-    with_each_file(path, false, |entry| {
+    with_each_entry(path, false, |entry| {
         let ts = NaiveDateTime::from_timestamp(entry.mtime, 0);
         writeln!(
             &mut tw,
