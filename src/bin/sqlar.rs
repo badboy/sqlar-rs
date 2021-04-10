@@ -1,11 +1,11 @@
-use std::path::{Path, PathBuf};
 use std::io::{self, Write};
+use std::path::{Path, PathBuf};
 
+use anyhow::Result;
 use argh::FromArgs;
 use chrono::NaiveDateTime;
 use log::LevelFilter;
 use sqlar::{with_each_file, FileType};
-use anyhow::Result;
 use tabwriter::TabWriter;
 
 #[derive(FromArgs, PartialEq, Debug)]
@@ -91,18 +91,28 @@ fn real_main() -> Result<()> {
     match cmd.nested {
         Subcommand::Extract(x) => {
             let archive = &x.archive;
-            let destination = x.destination.or_else(|| archive.file_stem().map(PathBuf::from));
+            let destination = x
+                .destination
+                .or_else(|| archive.file_stem().map(PathBuf::from));
             let destination = match destination {
                 Some(d) => d,
                 None => anyhow::bail!("missing destination"),
             };
-            log::info!("Extracting {} to {}/", archive.display(), destination.display());
+            log::info!(
+                "Extracting {} to {}/",
+                archive.display(),
+                destination.display()
+            );
             sqlar::extract(&archive, &destination)?
         }
         Subcommand::Create(c) => {
             let mut paths = vec![c.path];
             paths.extend_from_slice(&c.paths);
-            log::info!("Creating new archive {} with files: {:?}", c.archive.display(), paths);
+            log::info!(
+                "Creating new archive {} with files: {:?}",
+                c.archive.display(),
+                paths
+            );
             sqlar::create(&c.archive, &paths)?
         }
         Subcommand::List(l) => list(&*l.archive)?,
@@ -129,8 +139,13 @@ pub fn list(path: &Path) -> Result<()> {
             entry.mode,
             ts,
             entry.size,
-            if entry.filetype == FileType::File { (entry.compressed_size as f64 / entry.size as f64) * 100.0} else { 0.0 },
-        ).unwrap();
+            if entry.filetype == FileType::File {
+                (entry.compressed_size as f64 / entry.size as f64) * 100.0
+            } else {
+                0.0
+            },
+        )
+        .unwrap();
         Ok(())
     })?;
 
