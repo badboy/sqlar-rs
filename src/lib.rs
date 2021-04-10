@@ -39,13 +39,25 @@ pub enum FileType {
     Unsupported,
 }
 
+// `stat.st_mode` values
+// via https://man7.org/linux/man-pages/man7/inode.7.html
+/// bit mask for the file type bit field
+const S_IFMT: u32 = 0o0170000;
+/// regular file
+const S_IFREG: u32 = 0o0100000;
+/// directory
+const S_IFDIR: u32 = 0o0040000;
+
 impl From<u32> for FileType {
     fn from(mode: u32) -> FileType {
-        match mode & !0o777 {
-            0o100000 => FileType::File,
-            0o40000 => FileType::Dir,
-            _ => FileType::Unsupported,
+        if mode & S_IFMT == S_IFREG {
+            return FileType::File;
         }
+        if mode & S_IFMT == S_IFDIR {
+            return FileType::Dir;
+        }
+
+        FileType::Unsupported
     }
 }
 
