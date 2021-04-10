@@ -1,3 +1,74 @@
+//! # sqlar - a SQLite Archive utility
+//!
+//! > An "SQLite Archive" is a file container similar to a ZIP archive or Tarball but based on an SQLite database.
+//!
+//! See the [SQLite Archive Files][sqlar] documentation for all information.
+//!
+//! This library allows to list archive contents, extract files from archives or create a new
+//! archive.
+//! It's main usage is throug the command line utility `sqlar`
+//!
+//! # Installation
+//!
+//! The command line utility `sqlar` can be installed through `cargo`:
+//!
+//! ```text
+//! cargo install sqlar
+//! ```
+//!
+//! # Usage
+//!
+//! ## List the content of an archive
+//!
+//! ```text
+//! sqlar l path/to/file.sqlar
+//! ```
+//!
+//! ## Extract an archive
+//!
+//! ```text
+//! sqlar x path/to/file.sqlar path/to/dest/
+//! ```
+//!
+//! ## Create an archive
+//!
+//! ```text
+//! sqlar c path/to/new-archive.sqlar path/to/source/
+//! ```
+//!
+//! # Example
+//!
+//! The library can also be used progamatically.
+//!
+//! ## List files in an archive
+//!
+//! ```rust,no_run
+//! use sqlar::with_each_entry;
+//!
+//! with_each_entry("path/to/archive.sqlar", false, |entry| {
+//!    println!("File: {}, file type: {:?}, mode: {}", entry.name, entry.filetype, entry.mode);
+//!    Ok(())
+//! });
+//! ```
+//!
+//! ## Create an archive
+//!
+//! ```rust,no_run
+//! use sqlar::create;
+//!
+//! create("path/to/new-archive.sqlar", &["path/to/source"]);
+//! ```
+//!
+//! ## Extract all files from an archive
+//!
+//! ```rust,no_run
+//! use sqlar::extract;
+//!
+//! extract("path/to/archive.sqlar", "path/to/dest");
+//! ```
+//!
+//! [sqlar]: https://www.sqlite.org/sqlar.html
+
 use std::fs;
 
 pub use rusqlite::Result;

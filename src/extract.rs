@@ -9,8 +9,9 @@ use filetime::FileTime;
 use rusqlite::{Connection, Result};
 
 /// Extract all files from the SQLar at `path` into `dest`.
-pub fn extract(path: &Path, dest: &Path) -> Result<()> {
-    fs::create_dir_all(&dest).expect("can't create target directory");
+pub fn extract(path: impl AsRef<Path>, dest: impl AsRef<Path>) -> Result<()> {
+    let dest = dest.as_ref();
+    fs::create_dir_all(dest).expect("can't create target directory");
 
     let db = Connection::open(path)?;
     crate::compress::init(&db)?;
