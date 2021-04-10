@@ -1,4 +1,4 @@
-//! # sqlar - a SQLite Archive utility
+//! # sqlar - an SQLite Archive utility
 //!
 //! > An "SQLite Archive" is a file container similar to a ZIP archive or Tarball but based on an SQLite database.
 //!
