@@ -24,6 +24,7 @@ pub fn with_each_entry(
     f: impl FnMut(&Entry) -> Result<()>,
 ) -> Result<()> {
     let db = Connection::open(path)?;
+    crate::compress::init(&db)?;
     iterate(&db, decompress, f)
 }
 
